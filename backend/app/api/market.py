@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.database.session import get_db
-from app.schemas.market import MarketDataResponse
+from app.schemas.market import MarketDataResponse, MarketSyncRequest, MarketSyncResponse
 from app.services.candle_service import save_candles
 from app.services.market_data_service import (
     MarketDataProviderError,
@@ -16,6 +16,7 @@ from app.services.market_data_service import (
     validate_symbol,
     validate_timeframe,
 )
+from app.services.market_sync_service import sync_candles
 from app.services.mt5_service import (
     MT5ConnectionError,
     MT5DataError,
@@ -48,7 +49,13 @@ def market_candles(
         normalized_symbol = validate_symbol(symbol, provider)
         normalized_timeframe = validate_timeframe(timeframe, provider)
         candles = get_candles(normalized_symbol, normalized_timeframe, limit, provider)
-        saved_candles = save_candles(db, candles, normalized_symbol, normalized_timeframe)
+        saved_candles = save_candles(
+            db,
+            candles,
+            normalized_symbol,
+            normalized_timeframe,
+            validate_inputs=False,
+        )
     except (ValueError, MarketDataProviderError) as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -77,3 +84,11 @@ def market_candles(
         count=len(saved_candles),
         candles=saved_candles,
     )
+
+
+@router.post("/sync", response_model=MarketSyncResponse)
+def market_sync(
+    request: MarketSyncRequest,
+    db: Annotated[Session, Depends(get_db)],
+) -> MarketSyncResponse:
+    return sync_candles(db, request)

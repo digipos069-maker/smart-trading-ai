@@ -27,3 +27,28 @@ class MarketDataResponse(BaseModel):
     timeframe: str
     count: int
     candles: list[CandleResponse]
+
+
+class MarketSyncRequest(BaseModel):
+    provider: str | None = None
+    symbols: list[str] = Field(default_factory=lambda: ["XAUUSD"], min_length=1)
+    timeframes: list[str] = Field(default_factory=lambda: ["M5"], min_length=1)
+    limit: int = Field(default=500, ge=1, le=5000)
+
+
+class MarketSyncTaskResult(BaseModel):
+    provider: str
+    symbol: str
+    timeframe: str
+    fetched_count: int
+    saved_count: int
+    latest_time: datetime | None = None
+    status: str
+    error: str | None = None
+
+
+class MarketSyncResponse(BaseModel):
+    provider: str
+    total_tasks: int
+    total_saved: int
+    results: list[MarketSyncTaskResult]

@@ -14,9 +14,10 @@ def save_candles(
     candles: list[CandleResponse],
     symbol: str,
     timeframe: str,
+    validate_inputs: bool = True,
 ) -> list[Candle]:
-    normalized_symbol = validate_symbol(symbol)
-    normalized_timeframe = validate_timeframe(timeframe)
+    normalized_symbol = validate_symbol(symbol) if validate_inputs else symbol.upper()
+    normalized_timeframe = validate_timeframe(timeframe) if validate_inputs else timeframe.upper()
 
     if not candles:
         return []
