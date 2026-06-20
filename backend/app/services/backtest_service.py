@@ -38,6 +38,7 @@ class TradeCandidate:
     take_profit: float
     setup_score: int
     setup_type: str
+    trade_models: tuple[str, ...]
     reason: str
 
 
@@ -63,6 +64,7 @@ def run_backtest(db: Session, request: BacktestRequest) -> BacktestResponse:
         request.target_rr,
         request.require_liquidity_sweep,
         request.require_structure_break,
+        request.allowed_trade_models,
     )
     trades: list[BacktestTrade] = []
     next_available_index = 0
@@ -111,6 +113,7 @@ def generate_ict_trade_candidates(
     target_rr: float | None = 2.0,
     require_liquidity_sweep: bool = True,
     require_structure_break: bool = True,
+    allowed_trade_models: list[str] | None = None,
 ) -> list[TradeCandidate]:
     """Generate signals from rolling historical windows without future candles."""
     candidates: list[TradeCandidate] = []
@@ -125,6 +128,11 @@ def generate_ict_trade_candidates(
             continue
         if require_structure_break and not (analysis.mss_events or analysis.bos_events):
             continue
+        matched_models = tuple(model.name for model in analysis.trade_models)
+        if allowed_trade_models:
+            allowed = {model.lower() for model in allowed_trade_models}
+            if not any(model.lower() in allowed for model in matched_models):
+                continue
 
         entry_low = float(analysis.entry_zone["low"])
         entry_high = float(analysis.entry_zone["high"])
@@ -156,6 +164,7 @@ def generate_ict_trade_candidates(
                 take_profit=take_profit,
                 setup_score=analysis.score,
                 setup_type=analysis.setup_type,
+                trade_models=matched_models,
                 reason="ICT setup met minimum score using candles available at signal time.",
             )
         )
@@ -243,6 +252,7 @@ def simulate_trade(
         r_multiple=round(r_multiple, 2),
         setup_score=candidate.setup_score,
         setup_type=candidate.setup_type,
+        trade_models=list(candidate.trade_models),
         reason=candidate.reason,
     )
 

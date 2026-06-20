@@ -4,6 +4,16 @@ from typing import Literal
 from pydantic import BaseModel, Field, model_validator
 
 BACKTEST_WARNING = "Backtest results do not guarantee future performance."
+DEFAULT_ALLOWED_TRADE_MODELS = [
+    "turtle_soup",
+    "amd",
+    "crt",
+    "silver_bullet",
+    "judas_swing",
+    "power_of_three",
+    "breaker_ifvg",
+    "ote_continuation",
+]
 
 
 class BacktestRequest(BaseModel):
@@ -18,6 +28,9 @@ class BacktestRequest(BaseModel):
     target_rr: float | None = Field(default=2.0, gt=0)
     require_liquidity_sweep: bool = True
     require_structure_break: bool = True
+    allowed_trade_models: list[str] | None = Field(
+        default_factory=lambda: DEFAULT_ALLOWED_TRADE_MODELS.copy()
+    )
     strategy_name: str = "ict_liquidity_mss_fvg"
     initial_balance: float = Field(default=10_000, gt=0)
     session_filter: Literal["Asia", "London", "New York", "Overlap"] | None = None
@@ -49,6 +62,7 @@ class BacktestTrade(BaseModel):
     r_multiple: float
     setup_score: int
     setup_type: str
+    trade_models: list[str] = []
     reason: str
 
 
