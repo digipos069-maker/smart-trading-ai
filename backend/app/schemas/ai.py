@@ -9,6 +9,7 @@ AnalysisType = Literal[
     "news_summary",
     "risk_warning",
     "journal_review",
+    "backtest_review",
     "full_analysis",
 ]
 SuggestedAction = Literal["wait", "avoid", "reduce_risk", "normal"]
@@ -75,6 +76,27 @@ class AIJournalReviewResponse(BaseModel):
     best_conditions: list[str]
     improvement_plan: list[str]
     risk_notes: list[str]
+
+
+class AIBacktestReviewRequest(BaseModel):
+    symbol: str = "XAUUSD"
+    timeframe: str = "M5"
+    strategy_name: str = "ict_liquidity_mss_fvg"
+    metrics: dict[str, Any]
+    trades: list[dict[str, Any]]
+
+
+class AIBacktestReviewResponse(BaseModel):
+    summary: str
+    performance_grade: Literal["A", "B", "C", "D"]
+    strengths: list[str]
+    weaknesses: list[str]
+    best_conditions: list[str]
+    worst_conditions: list[str]
+    risk_notes: list[str]
+    improvement_plan: list[str]
+    confidence: float = Field(ge=0, le=100)
+    warning: str
 
 
 class AIFullAnalysisRequest(BaseModel):

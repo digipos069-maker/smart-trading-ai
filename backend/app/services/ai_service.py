@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.ai_analysis import AIAnalysis
 from app.schemas.ai import (
+    AIBacktestReviewResponse,
     AIFullAnalysisResponse,
     AIJournalReviewResponse,
     AINewsSummaryResponse,
@@ -154,6 +155,52 @@ async def review_trade_journal(trades: list[dict[str, Any]]) -> AIJournalReviewR
         {"trades": trades},
     )
     return await _generate_structured(AIJournalReviewResponse, prompt, fallback)
+
+
+async def review_backtest_result(
+    symbol: str,
+    timeframe: str,
+    strategy_name: str,
+    metrics: dict[str, Any],
+    trades: list[dict[str, Any]],
+) -> AIBacktestReviewResponse:
+    """Review deterministic backtest output after the backtest has completed."""
+    net_r = float(metrics.get("net_r") or 0)
+    win_rate = float(metrics.get("win_rate") or 0)
+    profit_factor = float(metrics.get("profit_factor") or 0)
+    fallback = AIBacktestReviewResponse(
+        summary="AI backtest review unavailable.",
+        performance_grade=_backtest_grade(net_r, profit_factor, win_rate),
+        strengths=[],
+        weaknesses=["AI review unavailable."],
+        best_conditions=[],
+        worst_conditions=[],
+        risk_notes=[
+            "Backtest results do not guarantee future performance.",
+            EDUCATIONAL_WARNING,
+        ],
+        improvement_plan=["Review losing trades by session, setup type, and news context."],
+        confidence=0,
+        warning="Backtest results do not guarantee future performance.",
+    )
+    prompt = _prompt(
+        "Review this completed deterministic backtest. Do not change or invent metrics.",
+        {
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "strategy_name": strategy_name,
+            "metrics": metrics,
+            "trades_sample": trades[:200],
+            "instructions": [
+                "Explain performance quality.",
+                "Identify best and worst conditions.",
+                "Find likely weaknesses in the strategy behavior.",
+                "Suggest practical improvements for future research.",
+                "Do not guarantee future profitability.",
+            ],
+        },
+    )
+    return await _generate_structured(AIBacktestReviewResponse, prompt, fallback)
 
 
 async def full_ai_analysis(
@@ -327,5 +374,15 @@ def _grade(score: int) -> str:
     if score >= 65:
         return "B"
     if score >= 50:
+        return "C"
+    return "D"
+
+
+def _backtest_grade(net_r: float, profit_factor: float, win_rate: float) -> str:
+    if net_r > 20 and profit_factor >= 1.5 and win_rate >= 45:
+        return "A"
+    if net_r > 5 and profit_factor >= 1.2:
+        return "B"
+    if net_r >= 0:
         return "C"
     return "D"

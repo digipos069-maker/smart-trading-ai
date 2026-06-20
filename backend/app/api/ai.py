@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.database.session import get_db
 from app.schemas.ai import (
+    AIBacktestReviewRequest,
+    AIBacktestReviewResponse,
     AIFullAnalysisRequest,
     AIFullAnalysisResponse,
     AIJournalReviewRequest,
@@ -21,6 +23,7 @@ from app.services.ai_service import (
     create_risk_warning,
     explain_ict_setup,
     full_ai_analysis,
+    review_backtest_result,
     review_trade_journal,
     save_ai_analysis,
     score_setup_quality,
@@ -82,6 +85,29 @@ async def journal_review(
 ) -> AIJournalReviewResponse:
     response = await review_trade_journal(request.trades)
     _save_or_500(db, "journal_review", request.model_dump(), response, None, None)
+    return response
+
+
+@router.post("/backtest-review", response_model=AIBacktestReviewResponse)
+async def backtest_review(
+    request: AIBacktestReviewRequest,
+    db: Annotated[Session, Depends(get_db)],
+) -> AIBacktestReviewResponse:
+    response = await review_backtest_result(
+        request.symbol,
+        request.timeframe,
+        request.strategy_name,
+        request.metrics,
+        request.trades,
+    )
+    _save_or_500(
+        db,
+        "backtest_review",
+        request.model_dump(),
+        response,
+        request.symbol,
+        request.timeframe,
+    )
     return response
 
 
