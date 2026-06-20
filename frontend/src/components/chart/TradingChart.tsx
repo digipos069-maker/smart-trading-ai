@@ -18,6 +18,8 @@ import type { ICTAnalysis } from "../../types/ict";
 import type { Candle } from "../../types/market";
 import { EmptyState, LoadingBlock } from "../ui/State";
 
+const MIN_LABEL_CONFIDENCE = 70;
+
 export function TradingChart({
   candles,
   analysis,
@@ -47,7 +49,14 @@ export function TradingChart({
         horzLines: { color: "#111827" },
       },
       rightPriceScale: { borderColor: "#1f2937" },
-      timeScale: { borderColor: "#1f2937", timeVisible: true },
+      localization: {
+        timeFormatter: formatLocalDateTime,
+      },
+      timeScale: {
+        borderColor: "#1f2937",
+        timeVisible: true,
+        tickMarkFormatter: formatLocalTick,
+      },
     });
     const series = chart.addSeries(CandlestickSeries, {
       upColor: "#22c55e",
@@ -96,9 +105,11 @@ export function TradingChart({
   }, [candles, analysis]);
 
   useEffect(() => {
-    if (!seriesRef.current || !analysis) return;
+    if (!seriesRef.current) return;
     priceLinesRef.current.forEach((line) => seriesRef.current?.removePriceLine(line));
     priceLinesRef.current = [];
+
+    if (!hasHighConfidenceAnalysis(analysis)) return;
 
     const lines = [
       analysis.entry_zone
@@ -139,7 +150,7 @@ export function TradingChart({
 }
 
 function buildMarkers(analysis?: ICTAnalysis): SeriesMarker<Time>[] {
-  if (!analysis) return [];
+  if (!hasHighConfidenceAnalysis(analysis)) return [];
   return [
     ...analysis.liquidity_sweeps.map((item) => ({
       time: Math.floor(new Date(item.time).getTime() / 1000) as UTCTimestamp,
@@ -163,4 +174,41 @@ function buildMarkers(analysis?: ICTAnalysis): SeriesMarker<Time>[] {
       text: "MSS",
     })),
   ];
+}
+
+function hasHighConfidenceAnalysis(analysis?: ICTAnalysis): analysis is ICTAnalysis {
+  return Boolean(analysis && analysis.score > MIN_LABEL_CONFIDENCE);
+}
+
+function formatLocalDateTime(time: Time): string {
+  const date = chartTimeToDate(time);
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatLocalTick(time: Time): string {
+  const date = chartTimeToDate(time);
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function chartTimeToDate(time: Time): Date {
+  if (typeof time === "number") {
+    return new Date(time * 1000);
+  }
+
+  if (typeof time === "string") {
+    return new Date(time);
+  }
+
+  return new Date(time.year, time.month - 1, time.day);
 }
