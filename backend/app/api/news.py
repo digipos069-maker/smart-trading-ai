@@ -5,8 +5,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
-from app.schemas.news import NewsEventCreate, NewsEventResponse, NewsListResponse
-from app.services.news_service import get_latest_news, save_news_event
+from app.schemas.news import (
+    NewsEventCreate,
+    NewsEventResponse,
+    NewsListResponse,
+    NewsRiskResponse,
+)
+from app.services.news_service import get_latest_news, get_news_risk, save_news_event
 
 router = APIRouter()
 
@@ -20,6 +25,14 @@ def latest_news(
 ) -> NewsListResponse:
     events = get_latest_news(db, limit=limit, symbol=symbol, impact=impact)
     return NewsListResponse(count=len(events), events=events)
+
+
+@router.get("/risk", response_model=NewsRiskResponse)
+def news_risk(
+    db: Annotated[Session, Depends(get_db)],
+    symbol: str = "XAUUSD",
+) -> NewsRiskResponse:
+    return get_news_risk(db, symbol)
 
 
 @router.post("", response_model=NewsEventResponse, status_code=status.HTTP_201_CREATED)

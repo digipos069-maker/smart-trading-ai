@@ -38,3 +38,11 @@ class NewsAnalysisResponse(BaseModel):
 class NewsListResponse(BaseModel):
     count: int
     events: list[NewsEventResponse]
+
+
+class NewsRiskResponse(BaseModel):
+    can_trade: bool
+    risk_level: str
+    blocking_event: str | None = None
+    minutes_to_event: int | None = None
+    reason: str
