@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import { AppProviders } from "./app/providers";
 import { AppRouter } from "./app/router";
 import "./i18n";
+import "./theme";
 import "./styles.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

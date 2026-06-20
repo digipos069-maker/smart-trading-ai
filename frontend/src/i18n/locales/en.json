@@ -11,7 +11,8 @@
     "ict": "ICT",
     "news": "News",
     "backtest": "Backtest",
-    "journal": "Journal"
+    "journal": "Journal",
+    "settings": "Settings"
   },
   "language": {
     "label": "Language",
@@ -64,5 +65,15 @@
     "noAi": "No AI analysis loaded.",
     "newsUnavailable": "News risk API unavailable.",
     "aiUnavailable": "AI analysis unavailable."
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure your workspace preferences.",
+    "theme": "Theme",
+    "themeHint": "Choose the dashboard skin.",
+    "dark": "Dark",
+    "darkDescription": "Current trading dashboard style.",
+    "light": "White",
+    "lightDescription": "Bright skin for daytime review."
   }
 }

@@ -1,9 +1,14 @@
 import {
   ColorType,
   createChart,
+  createSeriesMarkers,
   CandlestickSeries,
   type IChartApi,
   type ISeriesApi,
+  type ISeriesMarkersPluginApi,
+  type IPriceLine,
+  type SeriesMarker,
+  type Time,
   type UTCTimestamp,
 } from "lightweight-charts";
 import { useEffect, useRef } from "react";
@@ -26,6 +31,8 @@ export function TradingChart({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const markersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+  const priceLinesRef = useRef<IPriceLine[]>([]);
 
   useEffect(() => {
     if (!containerRef.current || chartRef.current) return;
@@ -52,6 +59,7 @@ export function TradingChart({
     });
     chartRef.current = chart;
     seriesRef.current = series;
+    markersRef.current = createSeriesMarkers(series, []);
 
     const resize = () => {
       if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
@@ -63,11 +71,17 @@ export function TradingChart({
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
+      markersRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    if (!seriesRef.current || !candles?.length) return;
+    if (!seriesRef.current) return;
+    if (!candles?.length) {
+      seriesRef.current.setData([]);
+      markersRef.current?.setMarkers([]);
+      return;
+    }
     const data = candles.map((candle) => ({
       time: Math.floor(new Date(candle.time).getTime() / 1000) as UTCTimestamp,
       open: candle.open,
@@ -76,18 +90,16 @@ export function TradingChart({
       close: candle.close,
     }));
     seriesRef.current.setData(data);
-    seriesRef.current.setMarkers(
-      buildMarkers(analysis).map((marker) => ({
-        ...marker,
-        time: marker.time as UTCTimestamp,
-      })),
-    );
+    markersRef.current?.setMarkers(buildMarkers(analysis));
     seriesRef.current.priceScale().applyOptions({ autoScale: true });
     chartRef.current?.timeScale().fitContent();
   }, [candles, analysis]);
 
   useEffect(() => {
     if (!seriesRef.current || !analysis) return;
+    priceLinesRef.current.forEach((line) => seriesRef.current?.removePriceLine(line));
+    priceLinesRef.current = [];
+
     const lines = [
       analysis.entry_zone
         ? {
@@ -99,8 +111,8 @@ export function TradingChart({
       analysis.stop_loss ? { price: analysis.stop_loss, color: "#ef4444", title: "SL" } : null,
       analysis.take_profit ? { price: analysis.take_profit, color: "#22c55e", title: "TP" } : null,
     ].filter(Boolean) as { price: number; color: string; title: string }[];
-    lines.forEach((line) =>
-      seriesRef.current?.createPriceLine({
+    priceLinesRef.current = lines.map((line) =>
+      seriesRef.current!.createPriceLine({
         price: line.price,
         color: line.color,
         lineWidth: 1,
@@ -109,34 +121,45 @@ export function TradingChart({
     );
   }, [analysis]);
 
-  if (loading) return <LoadingBlock label={t("states.loadingChart")} />;
-  if (!candles?.length) return <EmptyState message={t("states.noCandles")} />;
-
-  return <div ref={containerRef} className="min-h-[520px] rounded-md border border-line" />;
+  return (
+    <div className="relative min-h-[520px] rounded-md border border-line">
+      <div ref={containerRef} className="min-h-[520px]" />
+      {loading ? (
+        <div className="absolute inset-0 bg-slate-950/80 p-4">
+          <LoadingBlock label={t("states.loadingChart")} />
+        </div>
+      ) : null}
+      {!loading && !candles?.length ? (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 p-4">
+          <EmptyState message={t("states.noCandles")} />
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
-function buildMarkers(analysis?: ICTAnalysis) {
+function buildMarkers(analysis?: ICTAnalysis): SeriesMarker<Time>[] {
   if (!analysis) return [];
   return [
     ...analysis.liquidity_sweeps.map((item) => ({
-      time: Math.floor(new Date(item.time).getTime() / 1000),
-      position: item.direction === "sell_side" ? "belowBar" : "aboveBar",
+      time: Math.floor(new Date(item.time).getTime() / 1000) as UTCTimestamp,
+      position: item.direction === "sell_side" ? "belowBar" as const : "aboveBar" as const,
       color: "#f59e0b",
-      shape: "circle",
+      shape: "circle" as const,
       text: item.direction === "sell_side" ? "SSL" : "BSL",
     })),
     ...analysis.bos_events.map((item) => ({
-      time: Math.floor(new Date(item.time).getTime() / 1000),
-      position: item.direction === "bullish" ? "aboveBar" : "belowBar",
+      time: Math.floor(new Date(item.time).getTime() / 1000) as UTCTimestamp,
+      position: item.direction === "bullish" ? "aboveBar" as const : "belowBar" as const,
       color: "#38bdf8",
-      shape: "arrowUp",
+      shape: "arrowUp" as const,
       text: "BOS",
     })),
     ...analysis.mss_events.map((item) => ({
-      time: Math.floor(new Date(item.time).getTime() / 1000),
-      position: item.direction === "bullish" ? "aboveBar" : "belowBar",
+      time: Math.floor(new Date(item.time).getTime() / 1000) as UTCTimestamp,
+      position: item.direction === "bullish" ? "aboveBar" as const : "belowBar" as const,
       color: "#a78bfa",
-      shape: "arrowDown",
+      shape: "arrowDown" as const,
       text: "MSS",
     })),
   ];

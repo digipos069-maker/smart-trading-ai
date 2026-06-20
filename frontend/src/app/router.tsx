@@ -6,6 +6,7 @@ import { DashboardPage } from "../pages/DashboardPage";
 import { ICTAnalysisPage } from "../pages/ICTAnalysisPage";
 import { JournalPage } from "../pages/JournalPage";
 import { NewsPage } from "../pages/NewsPage";
+import { SettingsPage } from "../pages/SettingsPage";
 
 export function AppRouter() {
   return (
@@ -17,6 +18,7 @@ export function AppRouter() {
           <Route path="/news" element={<NewsPage />} />
           <Route path="/backtest" element={<BacktestPage />} />
           <Route path="/journal" element={<JournalPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

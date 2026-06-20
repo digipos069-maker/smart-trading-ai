@@ -11,7 +11,8 @@
     "ict": "ICT",
     "news": "ព័ត៌មាន",
     "backtest": "Backtest",
-    "journal": "កំណត់ហេតុ"
+    "journal": "កំណត់ហេតុ",
+    "settings": "ការកំណត់"
   },
   "language": {
     "label": "ភាសា",
@@ -64,5 +65,15 @@
     "noAi": "មិនទាន់មានការវិភាគ AI។",
     "newsUnavailable": "News risk API មិនអាចប្រើបាន។",
     "aiUnavailable": "AI analysis មិនអាចប្រើបាន។"
+  },
+  "settings": {
+    "title": "ការកំណត់",
+    "subtitle": "កំណត់ចំណូលចិត្តផ្ទាំងការងារ។",
+    "theme": "រូបរាង",
+    "themeHint": "ជ្រើសរើសស្បែកផ្ទាំងគ្រប់គ្រង។",
+    "dark": "ងងឹត",
+    "darkDescription": "រចនាប័ទ្មផ្ទាំងជួញដូរបច្ចុប្បន្ន។",
+    "light": "ស",
+    "lightDescription": "រូបរាងភ្លឺសម្រាប់ពិនិត្យពេលថ្ងៃ។"
   }
 }

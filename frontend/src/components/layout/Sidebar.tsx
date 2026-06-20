@@ -7,6 +7,7 @@ const items = [
   { to: "/news", label: "nav.news" },
   { to: "/backtest", label: "nav.backtest" },
   { to: "/journal", label: "nav.journal" },
+  { to: "/settings", label: "nav.settings" },
 ];
 
 export function Sidebar() {
