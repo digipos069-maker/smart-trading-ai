@@ -21,6 +21,25 @@ services:
     depends_on:
       - postgres
 
+  market-data-service:
+    build:
+      context: ./market-data-service
+    ports:
+      - "8010:8010"
+    environment:
+      ENVIRONMENT: development
+      AUTO_CREATE_TABLES: "true"
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/smart_trading_ai
+      MARKET_DATA_PROVIDER: binance
+      BINANCE_BASE_URL: https://api.binance.com
+      OANDA_BASE_URL: https://api-fxpractice.oanda.com
+      OANDA_API_TOKEN: ${OANDA_API_TOKEN:-}
+      TELEGRAM_NOTIFY_MARKET_ERRORS: ${TELEGRAM_NOTIFY_MARKET_ERRORS:-false}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    depends_on:
+      - postgres
+
   frontend:
     image: node:22-alpine
     working_dir: /app
