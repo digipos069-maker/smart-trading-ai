@@ -6,6 +6,7 @@ try:
 except ImportError:  # pragma: no cover - depends on local trading terminal setup
     mt5 = None
 
+from app.core.config import settings
 from app.schemas.market import CandleResponse
 
 SUPPORTED_SYMBOLS = {"XAUUSD", "EURUSD", "GBPUSD", "BTCUSD", "NQ"}
@@ -56,19 +57,81 @@ def initialize_mt5() -> None:
     if mt5 is None:
         raise MT5ConnectionError("MetaTrader5 package is not installed.")
 
-    if not mt5.initialize():
+    initialized = (
+        mt5.initialize(path=settings.MT5_TERMINAL_PATH)
+        if settings.MT5_TERMINAL_PATH
+        else mt5.initialize()
+    )
+    if not initialized:
         code, message = mt5.last_error()
         raise MT5ConnectionError(f"Failed to initialize MetaTrader5: {code} {message}")
+
+    if settings.MT5_LOGIN and settings.MT5_PASSWORD and settings.MT5_SERVER:
+        authorized = mt5.login(
+            login=settings.MT5_LOGIN,
+            password=settings.MT5_PASSWORD,
+            server=settings.MT5_SERVER,
+        )
+        if not authorized:
+            code, message = mt5.last_error()
+            raise MT5ConnectionError(f"Failed to authorize MetaTrader5: {code} {message}")
 
 
 def get_market_status() -> dict[str, str]:
     if mt5 is None:
-        return {"provider": "mt5", "status": "package_not_installed"}
+        return {
+            "provider": "mt5",
+            "status": "package_not_installed",
+            "message": "Install MetaTrader5 with pip and run the API directly on Windows.",
+        }
 
-    if not mt5.initialize():
-        return {"provider": "mt5", "status": "not_connected"}
+    initialized = (
+        mt5.initialize(path=settings.MT5_TERMINAL_PATH)
+        if settings.MT5_TERMINAL_PATH
+        else mt5.initialize()
+    )
+    if not initialized:
+        code, message = mt5.last_error()
+        return {
+            "provider": "mt5",
+            "status": "not_connected",
+            "error_code": str(code),
+            "message": str(message),
+        }
 
-    return {"provider": "mt5", "status": "connected"}
+    if settings.MT5_LOGIN and settings.MT5_PASSWORD and settings.MT5_SERVER:
+        authorized = mt5.login(
+            login=settings.MT5_LOGIN,
+            password=settings.MT5_PASSWORD,
+            server=settings.MT5_SERVER,
+        )
+        if not authorized:
+            code, message = mt5.last_error()
+            return {
+                "provider": "mt5",
+                "status": "not_connected",
+                "error_code": str(code),
+                "message": str(message),
+            }
+
+    account = mt5.account_info()
+    terminal = mt5.terminal_info()
+    if account is None:
+        code, message = mt5.last_error()
+        return {
+            "provider": "mt5",
+            "status": "not_connected",
+            "error_code": str(code),
+            "message": str(message),
+        }
+
+    return {
+        "provider": "mt5",
+        "status": "connected",
+        "account": str(account.login) if account else "unknown",
+        "server": str(account.server) if account else "unknown",
+        "terminal_path": str(terminal.path) if terminal else "unknown",
+    }
 
 
 def get_candles(symbol: str, timeframe: str, limit: int = 500) -> list[CandleResponse]:
