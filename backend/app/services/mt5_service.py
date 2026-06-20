@@ -58,19 +58,20 @@ def initialize_mt5() -> None:
         raise MT5ConnectionError("MetaTrader5 package is not installed.")
 
     initialized = (
-        mt5.initialize(path=settings.MT5_TERMINAL_PATH)
+        mt5.initialize(path=settings.MT5_TERMINAL_PATH, timeout=settings.MT5_TIMEOUT_MS)
         if settings.MT5_TERMINAL_PATH
-        else mt5.initialize()
+        else mt5.initialize(timeout=settings.MT5_TIMEOUT_MS)
     )
     if not initialized:
         code, message = mt5.last_error()
         raise MT5ConnectionError(f"Failed to initialize MetaTrader5: {code} {message}")
 
-    if settings.MT5_LOGIN and settings.MT5_PASSWORD and settings.MT5_SERVER:
+    if _should_explicit_login():
         authorized = mt5.login(
             login=settings.MT5_LOGIN,
             password=settings.MT5_PASSWORD,
             server=settings.MT5_SERVER,
+            timeout=settings.MT5_TIMEOUT_MS,
         )
         if not authorized:
             code, message = mt5.last_error()
@@ -86,9 +87,9 @@ def get_market_status() -> dict[str, str]:
         }
 
     initialized = (
-        mt5.initialize(path=settings.MT5_TERMINAL_PATH)
+        mt5.initialize(path=settings.MT5_TERMINAL_PATH, timeout=settings.MT5_TIMEOUT_MS)
         if settings.MT5_TERMINAL_PATH
-        else mt5.initialize()
+        else mt5.initialize(timeout=settings.MT5_TIMEOUT_MS)
     )
     if not initialized:
         code, message = mt5.last_error()
@@ -99,11 +100,12 @@ def get_market_status() -> dict[str, str]:
             "message": str(message),
         }
 
-    if settings.MT5_LOGIN and settings.MT5_PASSWORD and settings.MT5_SERVER:
+    if _should_explicit_login():
         authorized = mt5.login(
             login=settings.MT5_LOGIN,
             password=settings.MT5_PASSWORD,
             server=settings.MT5_SERVER,
+            timeout=settings.MT5_TIMEOUT_MS,
         )
         if not authorized:
             code, message = mt5.last_error()
@@ -132,6 +134,15 @@ def get_market_status() -> dict[str, str]:
         "server": str(account.server) if account else "unknown",
         "terminal_path": str(terminal.path) if terminal else "unknown",
     }
+
+
+def _should_explicit_login() -> bool:
+    return bool(
+        settings.MT5_FORCE_LOGIN
+        and settings.MT5_LOGIN
+        and settings.MT5_PASSWORD
+        and settings.MT5_SERVER
+    )
 
 
 def get_candles(symbol: str, timeframe: str, limit: int = 500) -> list[CandleResponse]:

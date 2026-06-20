@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     MT5_PASSWORD: str | None = None
     MT5_SERVER: str | None = None
     MT5_TERMINAL_PATH: str | None = None
+    MT5_FORCE_LOGIN: bool = False
+    MT5_TIMEOUT_MS: int = 60_000
 
 
 settings = Settings()
