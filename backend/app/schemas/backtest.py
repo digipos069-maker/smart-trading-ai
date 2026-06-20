@@ -14,6 +14,10 @@ class BacktestRequest(BaseModel):
     end_date: date
     risk_per_trade: float = Field(default=1.0, gt=0)
     min_score: int = Field(default=70, ge=0, le=100)
+    min_rr: float = Field(default=1.5, gt=0)
+    target_rr: float | None = Field(default=2.0, gt=0)
+    require_liquidity_sweep: bool = True
+    require_structure_break: bool = True
     strategy_name: str = "ict_liquidity_mss_fvg"
     initial_balance: float = Field(default=10_000, gt=0)
     session_filter: Literal["Asia", "London", "New York", "Overlap"] | None = None

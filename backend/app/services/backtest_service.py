@@ -55,7 +55,14 @@ def run_backtest(db: Session, request: BacktestRequest) -> BacktestResponse:
         )
 
     candidates = generate_ict_trade_candidates(
-        candles, symbol, timeframe, request.min_score
+        candles,
+        symbol,
+        timeframe,
+        request.min_score,
+        request.min_rr,
+        request.target_rr,
+        request.require_liquidity_sweep,
+        request.require_structure_break,
     )
     trades: list[BacktestTrade] = []
     next_available_index = 0
@@ -97,6 +104,10 @@ def generate_ict_trade_candidates(
     symbol: str,
     timeframe: str,
     min_score: int,
+    min_rr: float = 1.5,
+    target_rr: float | None = 2.0,
+    require_liquidity_sweep: bool = True,
+    require_structure_break: bool = True,
 ) -> list[TradeCandidate]:
     """Generate signals from rolling historical windows without future candles."""
     candidates: list[TradeCandidate] = []
@@ -107,11 +118,27 @@ def generate_ict_trade_candidates(
             continue
         if not analysis.entry_zone or analysis.stop_loss is None or analysis.take_profit is None:
             continue
+        if require_liquidity_sweep and not analysis.liquidity_sweeps:
+            continue
+        if require_structure_break and not (analysis.mss_events or analysis.bos_events):
+            continue
 
         entry_low = float(analysis.entry_zone["low"])
         entry_high = float(analysis.entry_zone["high"])
         if entry_low > entry_high:
             entry_low, entry_high = entry_high, entry_low
+        entry_price = (entry_low + entry_high) / 2
+        risk = _risk(analysis.bias, entry_price, float(analysis.stop_loss))
+        reward = _reward(analysis.bias, entry_price, float(analysis.take_profit))
+        if risk <= 0 or reward <= 0 or reward / risk < min_rr:
+            continue
+        take_profit = _cap_take_profit_to_target_rr(
+            analysis.bias,
+            entry_price,
+            float(analysis.stop_loss),
+            float(analysis.take_profit),
+            target_rr,
+        )
 
         candidates.append(
             TradeCandidate(
@@ -123,7 +150,7 @@ def generate_ict_trade_candidates(
                 entry_low=entry_low,
                 entry_high=entry_high,
                 stop_loss=float(analysis.stop_loss),
-                take_profit=float(analysis.take_profit),
+                take_profit=take_profit,
                 setup_score=analysis.score,
                 setup_type=analysis.setup_type,
                 reason="ICT setup met minimum score using candles available at signal time.",
@@ -364,6 +391,28 @@ def _risk(direction: str, entry_price: float, stop_loss: float) -> float:
 
 def _reward(direction: str, entry_price: float, take_profit: float) -> float:
     return take_profit - entry_price if direction == "bullish" else entry_price - take_profit
+
+
+def _cap_take_profit_to_target_rr(
+    direction: str,
+    entry_price: float,
+    stop_loss: float,
+    original_take_profit: float,
+    target_rr: float | None,
+) -> float:
+    if target_rr is None:
+        return original_take_profit
+
+    risk = _risk(direction, entry_price, stop_loss)
+    if risk <= 0:
+        return original_take_profit
+
+    if direction == "bullish":
+        capped_take_profit = entry_price + risk * target_rr
+        return min(original_take_profit, capped_take_profit)
+
+    capped_take_profit = entry_price - risk * target_rr
+    return max(original_take_profit, capped_take_profit)
 
 
 def _max_drawdown(r_values: list[float]) -> float:

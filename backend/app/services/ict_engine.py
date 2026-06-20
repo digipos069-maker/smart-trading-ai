@@ -380,12 +380,15 @@ def analyze_ict_setup(
     order_blocks = detect_order_blocks(candles, bos_events)
     session_ranges = detect_session_range(candles)
 
+    last_index = len(candles) - 1
     bias = _resolve_bias(bos_events, mss_events, liquidity_sweeps)
     ote_zones = _build_ote_zones(swing_points, bias)
-    entry_zone = _select_entry_zone(order_blocks, ote_zones, bias)
-    stop_loss = _select_stop_loss(entry_zone, order_blocks, bias)
+    entry_zone = _select_entry_zone(order_blocks, ote_zones, bias, last_index)
+    stop_loss = _select_stop_loss(entry_zone, order_blocks, bias, last_index)
     take_profit = _select_take_profit(entry_zone, swing_points, bias)
     score, explanation = _score_setup(
+        candles,
+        bias,
         swing_points,
         bos_events,
         mss_events,
@@ -455,8 +458,16 @@ def _select_entry_zone(
     order_blocks: Sequence[OrderBlock],
     ote_zones: Sequence[OTEZone],
     bias: str,
+    last_index: int,
 ) -> dict[str, float] | None:
-    block = next((item for item in reversed(order_blocks) if item.direction == bias), None)
+    block = next(
+        (
+            item
+            for item in reversed(order_blocks)
+            if item.direction == bias and last_index - item.bos_index <= 30
+        ),
+        None,
+    )
     if block:
         return {"low": block.low, "high": block.high}
     if ote_zones:
@@ -469,10 +480,18 @@ def _select_stop_loss(
     entry_zone: dict[str, float] | None,
     order_blocks: Sequence[OrderBlock],
     bias: str,
+    last_index: int,
 ) -> float | None:
     if not entry_zone:
         return None
-    block = next((item for item in reversed(order_blocks) if item.direction == bias), None)
+    block = next(
+        (
+            item
+            for item in reversed(order_blocks)
+            if item.direction == bias and last_index - item.bos_index <= 30
+        ),
+        None,
+    )
     if block:
         return block.low if bias == "bullish" else block.high
     return entry_zone["low"] if bias == "bullish" else entry_zone["high"]
@@ -486,15 +505,31 @@ def _select_take_profit(
     if not entry_zone:
         return None
     if bias == "bullish":
-        high = next((s for s in reversed(swing_points) if s.type == "swing_high"), None)
+        high = next(
+            (
+                s
+                for s in reversed(swing_points)
+                if s.type == "swing_high" and s.price > entry_zone["high"]
+            ),
+            None,
+        )
         return high.price if high else None
     if bias == "bearish":
-        low = next((s for s in reversed(swing_points) if s.type == "swing_low"), None)
+        low = next(
+            (
+                s
+                for s in reversed(swing_points)
+                if s.type == "swing_low" and s.price < entry_zone["low"]
+            ),
+            None,
+        )
         return low.price if low else None
     return None
 
 
 def _score_setup(
+    candles: Sequence[object],
+    bias: str,
     swing_points: Sequence[SwingPoint],
     bos_events: Sequence[StructureEvent],
     mss_events: Sequence[StructureEvent],
@@ -507,30 +542,121 @@ def _score_setup(
 ) -> tuple[int, list[str]]:
     score = 0
     explanation: list[str] = []
+    last_index = len(candles) - 1
+    recent_sweep = _latest_recent_sweep(liquidity_sweeps, bias, last_index)
+    recent_structure = _latest_recent_structure(
+        list(mss_events) or list(bos_events), bias, last_index
+    )
+    recent_fvg = _latest_recent_fvg(list(ifvgs) or list(fvgs), bias, last_index)
+    recent_order_block = _latest_recent_order_block(order_blocks, bias, last_index)
 
-    if swing_points:
+    if _has_balanced_swings(swing_points):
         score += 15
-        explanation.append("Swing structure detected.")
-    if liquidity_sweeps:
+        explanation.append("Balanced swing structure detected.")
+    if recent_sweep:
         score += 20
-        explanation.append("Liquidity sweep detected.")
-    if mss_events or bos_events:
+        explanation.append("Recent directional liquidity sweep detected.")
+    if recent_structure:
         score += 20
-        explanation.append("BOS or MSS confirms structural displacement.")
-    if fvgs or ifvgs:
+        explanation.append("Recent BOS or MSS confirms current bias.")
+    if recent_fvg:
         score += 20
-        explanation.append("FVG or IFVG imbalance detected.")
-    if order_blocks or ote_zones:
+        explanation.append("Recent directional FVG or IFVG supports entry.")
+    if recent_order_block or ote_zones:
         score += 15
-        explanation.append("Order block or OTE zone available.")
-    if session_ranges:
+        explanation.append("Fresh order block or OTE zone available.")
+    if candles and _current_session_name(candles[-1].time) in {"London", "New York", "Overlap"}:
         score += 10
-        explanation.append("Session range context available.")
+        explanation.append("Signal appears during an active high-liquidity session.")
 
     if not explanation:
         explanation.append("No high-probability ICT confluence detected.")
 
     return min(score, 100), explanation
+
+
+def _has_balanced_swings(swing_points: Sequence[SwingPoint]) -> bool:
+    return any(item.type == "swing_high" for item in swing_points) and any(
+        item.type == "swing_low" for item in swing_points
+    )
+
+
+def _latest_recent_sweep(
+    liquidity_sweeps: Sequence[LiquiditySweep],
+    bias: str,
+    last_index: int,
+    lookback: int = 30,
+) -> LiquiditySweep | None:
+    required_direction = "sell_side" if bias == "bullish" else "buy_side"
+    return next(
+        (
+            item
+            for item in reversed(liquidity_sweeps)
+            if item.direction == required_direction and last_index - item.index <= lookback
+        ),
+        None,
+    )
+
+
+def _latest_recent_structure(
+    structure_events: Sequence[StructureEvent],
+    bias: str,
+    last_index: int,
+    lookback: int = 25,
+) -> StructureEvent | None:
+    return next(
+        (
+            item
+            for item in reversed(structure_events)
+            if item.direction == bias and last_index - item.index <= lookback
+        ),
+        None,
+    )
+
+
+def _latest_recent_fvg(
+    gaps: Sequence[FVG | IFVG],
+    bias: str,
+    last_index: int,
+    lookback: int = 25,
+) -> FVG | IFVG | None:
+    return next(
+        (
+            item
+            for item in reversed(gaps)
+            if item.direction == bias and last_index - item.index <= lookback
+        ),
+        None,
+    )
+
+
+def _latest_recent_order_block(
+    order_blocks: Sequence[OrderBlock],
+    bias: str,
+    last_index: int,
+    lookback: int = 30,
+) -> OrderBlock | None:
+    return next(
+        (
+            item
+            for item in reversed(order_blocks)
+            if item.direction == bias and last_index - item.bos_index <= lookback
+        ),
+        None,
+    )
+
+
+def _current_session_name(value: datetime, timezone: str = "Asia/Phnom_Penh") -> str:
+    local_time = value.astimezone(ZoneInfo(timezone)).time()
+    if time(19, 0) <= local_time < time(22, 0):
+        return "Overlap"
+    if time(6, 0) <= local_time < time(14, 0):
+        return "Asia"
+    if time(14, 0) <= local_time < time(22, 0):
+        return "London"
+    if local_time >= time(19, 0) or local_time < time(3, 0):
+        return "New York"
+    return "Unknown"
 
 
 def _build_setup_type(
