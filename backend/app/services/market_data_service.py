@@ -1,6 +1,12 @@
 from app.core.config import settings
 from app.schemas.market import CandleResponse
-from app.services.providers import MarketDataProvider, MT5MarketDataProvider, ProviderStatus
+from app.services.providers import (
+    BinanceMarketDataProvider,
+    MarketDataProvider,
+    MT5MarketDataProvider,
+    OandaMarketDataProvider,
+    ProviderStatus,
+)
 
 
 class MarketDataProviderError(ValueError):
@@ -11,6 +17,10 @@ def get_market_data_provider(provider_name: str | None = None) -> MarketDataProv
     provider = (provider_name or settings.MARKET_DATA_PROVIDER).lower()
     if provider == "mt5":
         return MT5MarketDataProvider()
+    if provider == "binance":
+        return BinanceMarketDataProvider()
+    if provider == "oanda":
+        return OandaMarketDataProvider()
 
     raise MarketDataProviderError(f"Unsupported market data provider '{provider}'.")
 

@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     AUTO_CREATE_TABLES: bool = True
     MARKET_DATA_PROVIDER: str = "mt5"
+    MARKET_DATA_TIMEOUT_SECONDS: float = 15.0
+    BINANCE_BASE_URL: str = "https://api.binance.com"
+    OANDA_BASE_URL: str = "https://api-fxpractice.oanda.com"
+    OANDA_API_TOKEN: str | None = None
     DATABASE_URL: str = (
         "postgresql+psycopg2://postgres:postgres@localhost:5432/smart_trading_ai"
     )
