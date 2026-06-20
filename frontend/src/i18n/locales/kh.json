@@ -1,0 +1,68 @@
+{
+  "app": {
+    "name": "Smart Trading AI",
+    "subtitle": "ផ្ទាំងវិភាគតែប៉ុណ្ណោះ",
+    "headerTitle": "ព័ត៌មានទីផ្សារ",
+    "headerSubtitle": "ICT, AI, ហានិភ័យព័ត៌មាន និង Backtest",
+    "noExecution": "មិនមានការបញ្ជាទិញពិត"
+  },
+  "nav": {
+    "dashboard": "ផ្ទាំងគ្រប់គ្រង",
+    "ict": "ICT",
+    "news": "ព័ត៌មាន",
+    "backtest": "Backtest",
+    "journal": "កំណត់ហេតុ"
+  },
+  "language": {
+    "label": "ភាសា",
+    "en": "អង់គ្លេស",
+    "kh": "ខ្មែរ"
+  },
+  "panels": {
+    "ictSignal": "សញ្ញា ICT",
+    "newsRisk": "ហានិភ័យព័ត៌មាន",
+    "aiAnalysis": "ការវិភាគ AI",
+    "detectedTradeModels": "ម៉ូដែលជួញដូរដែលរកឃើញ",
+    "recentResults": "លទ្ធផលថ្មីៗ",
+    "runBacktest": "ដំណើរការ Backtest"
+  },
+  "common": {
+    "loading": "កំពុងផ្ទុក",
+    "score": "ពិន្ទុ",
+    "setup": "Setup",
+    "entry": "ចំណុចចូល",
+    "models": "ម៉ូដែល",
+    "bias": "ទិសដៅ",
+    "grade": "ចំណាត់ថ្នាក់",
+    "confidence": "ភាពជឿជាក់",
+    "explanation": "ការពន្យល់",
+    "suggestedAction": "សកម្មភាពណែនាំ",
+    "wait": "រង់ចាំ",
+    "canTrade": "អាចជួញដូរ",
+    "noData": "មិនមានទិន្នន័យ។"
+  },
+  "backtest": {
+    "symbol": "Symbol",
+    "timeframe": "Timeframe",
+    "startDate": "ថ្ងៃចាប់ផ្តើម",
+    "endDate": "ថ្ងៃបញ្ចប់",
+    "minScore": "ពិន្ទុអប្បបរមា",
+    "initialBalance": "ទុនដើម",
+    "targetRr": "Target RR",
+    "running": "កំពុងដំណើរការ...",
+    "run": "ដំណើរការ Backtest",
+    "empty": "ដំណើរការ Backtest ដើម្បីមើលលទ្ធផល។",
+    "warning": "លទ្ធផល Backtest មិនធានាលទ្ធផលអនាគតទេ។"
+  },
+  "states": {
+    "loadingChart": "កំពុងផ្ទុកក្រាហ្វ",
+    "loadingIct": "កំពុងផ្ទុក ICT",
+    "loadingNewsRisk": "កំពុងផ្ទុកហានិភ័យព័ត៌មាន",
+    "loadingAi": "កំពុងផ្ទុកការវិភាគ AI",
+    "noCandles": "មិនមាន candles។ សូម Sync ទិន្នន័យទីផ្សារជាមុន។",
+    "noIct": "មិនទាន់មានការវិភាគ ICT។",
+    "noAi": "មិនទាន់មានការវិភាគ AI។",
+    "newsUnavailable": "News risk API មិនអាចប្រើបាន។",
+    "aiUnavailable": "AI analysis មិនអាចប្រើបាន។"
+  }
+}

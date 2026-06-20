@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import type { ICTAnalysis } from "../../types/ict";
 import { EmptyState, LoadingBlock } from "../ui/State";
 
@@ -8,8 +10,10 @@ export function ICTSignalPanel({
   analysis?: ICTAnalysis;
   loading?: boolean;
 }) {
-  if (loading) return <LoadingBlock label="Loading ICT" />;
-  if (!analysis) return <EmptyState message="No ICT analysis loaded." />;
+  const { t } = useTranslation();
+
+  if (loading) return <LoadingBlock label={t("states.loadingIct")} />;
+  if (!analysis) return <EmptyState message={t("states.noIct")} />;
 
   const biasClass =
     analysis.bias === "bullish"
@@ -21,16 +25,16 @@ export function ICTSignalPanel({
   return (
     <section className="rounded-md border border-line bg-slate-900 p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-100">ICT Signal</h2>
+        <h2 className="text-sm font-semibold text-slate-100">{t("panels.ictSignal")}</h2>
         <span className={`text-sm font-semibold uppercase ${biasClass}`}>{analysis.bias}</span>
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <Info label="Score" value={analysis.score} />
-        <Info label="Setup" value={analysis.setup_type} />
-        <Info label="Entry" value={formatZone(analysis.entry_zone)} />
+        <Info label={t("common.score")} value={analysis.score} />
+        <Info label={t("common.setup")} value={analysis.setup_type} />
+        <Info label={t("common.entry")} value={formatZone(analysis.entry_zone)} />
         <Info label="SL" value={formatNumber(analysis.stop_loss)} />
         <Info label="TP" value={formatNumber(analysis.take_profit)} />
-        <Info label="Models" value={analysis.trade_models.map((item) => item.name).join(", ") || "-"} />
+        <Info label={t("common.models")} value={analysis.trade_models.map((item) => item.name).join(", ") || "-"} />
       </div>
       <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
         <Count label="FVG" value={analysis.fvgs.length} />

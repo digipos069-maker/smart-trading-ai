@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { FormEvent, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { BacktestResultPanel } from "../components/panels/BacktestResultPanel";
 import { ErrorState, LoadingBlock } from "../components/ui/State";
@@ -18,6 +19,7 @@ const defaultModels = [
 ];
 
 export function BacktestPage() {
+  const { t } = useTranslation();
   const [result, setResult] = useState<BacktestResponse | undefined>();
   const [form, setForm] = useState<BacktestRequest>({
     name: "XAUUSD M5 Backtest",
@@ -52,14 +54,14 @@ export function BacktestPage() {
   return (
     <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
       <form onSubmit={submit} className="space-y-3 rounded-md border border-line bg-slate-900 p-4">
-        <h2 className="text-sm font-semibold text-slate-100">Run Backtest</h2>
-        <Input label="Symbol" value={form.symbol} onChange={(value) => setForm({ ...form, symbol: value })} />
-        <Input label="Timeframe" value={form.timeframe} onChange={(value) => setForm({ ...form, timeframe: value })} />
-        <Input label="Start date" type="date" value={form.start_date} onChange={(value) => setForm({ ...form, start_date: value })} />
-        <Input label="End date" type="date" value={form.end_date} onChange={(value) => setForm({ ...form, end_date: value })} />
-        <Input label="Min score" type="number" value={String(form.min_score)} onChange={(value) => setForm({ ...form, min_score: Number(value) })} />
-        <Input label="Initial balance" type="number" value={String(form.initial_balance)} onChange={(value) => setForm({ ...form, initial_balance: Number(value) })} />
-        <Input label="Target RR" type="number" value={String(form.target_rr ?? "")} onChange={(value) => setForm({ ...form, target_rr: value ? Number(value) : null })} />
+        <h2 className="text-sm font-semibold text-slate-100">{t("panels.runBacktest")}</h2>
+        <Input label={t("backtest.symbol")} value={form.symbol} onChange={(value) => setForm({ ...form, symbol: value })} />
+        <Input label={t("backtest.timeframe")} value={form.timeframe} onChange={(value) => setForm({ ...form, timeframe: value })} />
+        <Input label={t("backtest.startDate")} type="date" value={form.start_date} onChange={(value) => setForm({ ...form, start_date: value })} />
+        <Input label={t("backtest.endDate")} type="date" value={form.end_date} onChange={(value) => setForm({ ...form, end_date: value })} />
+        <Input label={t("backtest.minScore")} type="number" value={String(form.min_score)} onChange={(value) => setForm({ ...form, min_score: Number(value) })} />
+        <Input label={t("backtest.initialBalance")} type="number" value={String(form.initial_balance)} onChange={(value) => setForm({ ...form, initial_balance: Number(value) })} />
+        <Input label={t("backtest.targetRr")} type="number" value={String(form.target_rr ?? "")} onChange={(value) => setForm({ ...form, target_rr: value ? Number(value) : null })} />
         <label className="block text-xs text-slate-500">
           Models
           <textarea
@@ -77,15 +79,15 @@ export function BacktestPage() {
           disabled={mutation.isPending}
           className="w-full rounded-md bg-cyan-500 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
         >
-          {mutation.isPending ? "Running..." : "Run backtest"}
+          {mutation.isPending ? t("backtest.running") : t("backtest.run")}
         </button>
         {mutation.error ? <ErrorState message={mutation.error.message} /> : null}
       </form>
       <section className="space-y-4">
-        {mutation.isPending ? <LoadingBlock label="Running backtest" /> : null}
+        {mutation.isPending ? <LoadingBlock label={t("backtest.running")} /> : null}
         <BacktestResultPanel result={result} />
         <div className="rounded-md border border-line bg-slate-900 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-slate-100">Recent Results</h2>
+          <h2 className="mb-3 text-sm font-semibold text-slate-100">{t("panels.recentResults")}</h2>
           <div className="space-y-2 text-sm text-slate-400">
             {summaries.data?.slice(0, 5).map((item) => (
               <div key={item.id} className="flex justify-between rounded-md bg-slate-950 p-2">

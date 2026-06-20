@@ -1,0 +1,68 @@
+{
+  "app": {
+    "name": "Smart Trading AI",
+    "subtitle": "Analysis dashboard only",
+    "headerTitle": "Market Intelligence",
+    "headerSubtitle": "ICT, AI, news risk, and backtesting",
+    "noExecution": "No live trade execution"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "ict": "ICT",
+    "news": "News",
+    "backtest": "Backtest",
+    "journal": "Journal"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "kh": "Khmer"
+  },
+  "panels": {
+    "ictSignal": "ICT Signal",
+    "newsRisk": "News Risk",
+    "aiAnalysis": "AI Analysis",
+    "detectedTradeModels": "Detected Trade Models",
+    "recentResults": "Recent Results",
+    "runBacktest": "Run Backtest"
+  },
+  "common": {
+    "loading": "Loading",
+    "score": "Score",
+    "setup": "Setup",
+    "entry": "Entry",
+    "models": "Models",
+    "bias": "Bias",
+    "grade": "Grade",
+    "confidence": "Confidence",
+    "explanation": "Explanation",
+    "suggestedAction": "Suggested action",
+    "wait": "Wait",
+    "canTrade": "Can trade",
+    "noData": "No data available."
+  },
+  "backtest": {
+    "symbol": "Symbol",
+    "timeframe": "Timeframe",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "minScore": "Min score",
+    "initialBalance": "Initial balance",
+    "targetRr": "Target RR",
+    "running": "Running...",
+    "run": "Run backtest",
+    "empty": "Run a backtest to view metrics.",
+    "warning": "Backtest results do not guarantee future performance."
+  },
+  "states": {
+    "loadingChart": "Loading chart",
+    "loadingIct": "Loading ICT",
+    "loadingNewsRisk": "Loading news risk",
+    "loadingAi": "Loading AI analysis",
+    "noCandles": "No candles available. Sync market data first.",
+    "noIct": "No ICT analysis loaded.",
+    "noAi": "No AI analysis loaded.",
+    "newsUnavailable": "News risk API unavailable.",
+    "aiUnavailable": "AI analysis unavailable."
+  }
+}

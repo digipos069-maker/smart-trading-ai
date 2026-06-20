@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import type { NewsRisk } from "../../types/news";
 import { EmptyState, ErrorState, LoadingBlock } from "../ui/State";
 
@@ -10,9 +12,11 @@ export function NewsRiskPanel({
   loading?: boolean;
   error?: Error | null;
 }) {
-  if (loading) return <LoadingBlock label="Loading news risk" />;
-  if (error) return <ErrorState message="News risk API unavailable." />;
-  if (!newsRisk) return <EmptyState message="No news risk available." />;
+  const { t } = useTranslation();
+
+  if (loading) return <LoadingBlock label={t("states.loadingNewsRisk")} />;
+  if (error) return <ErrorState message={t("states.newsUnavailable")} />;
+  if (!newsRisk) return <EmptyState message={t("common.noData")} />;
 
   const highRisk = newsRisk.risk_level === "high";
   return (
@@ -23,9 +27,9 @@ export function NewsRiskPanel({
       ].join(" ")}
     >
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-100">News Risk</h2>
+        <h2 className="text-sm font-semibold text-slate-100">{t("panels.newsRisk")}</h2>
         <span className={highRisk ? "text-red-300" : "text-emerald-300"}>
-          {newsRisk.can_trade ? "Can trade" : "Wait"}
+          {newsRisk.can_trade ? t("common.canTrade") : t("common.wait")}
         </span>
       </div>
       <div className="space-y-2 text-sm text-slate-300">

@@ -7,6 +7,7 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { ICTAnalysis } from "../../types/ict";
 import type { Candle } from "../../types/market";
@@ -21,6 +22,7 @@ export function TradingChart({
   analysis?: ICTAnalysis;
   loading?: boolean;
 }) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -107,8 +109,8 @@ export function TradingChart({
     );
   }, [analysis]);
 
-  if (loading) return <LoadingBlock label="Loading chart" />;
-  if (!candles?.length) return <EmptyState message="No candles available. Sync market data first." />;
+  if (loading) return <LoadingBlock label={t("states.loadingChart")} />;
+  if (!candles?.length) return <EmptyState message={t("states.noCandles")} />;
 
   return <div ref={containerRef} className="min-h-[520px] rounded-md border border-line" />;
 }

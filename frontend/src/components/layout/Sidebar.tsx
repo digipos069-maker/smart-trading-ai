@@ -1,21 +1,24 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const items = [
-  { to: "/", label: "Dashboard" },
-  { to: "/ict", label: "ICT" },
-  { to: "/news", label: "News" },
-  { to: "/backtest", label: "Backtest" },
-  { to: "/journal", label: "Journal" },
+  { to: "/", label: "nav.dashboard" },
+  { to: "/ict", label: "nav.ict" },
+  { to: "/news", label: "nav.news" },
+  { to: "/backtest", label: "nav.backtest" },
+  { to: "/journal", label: "nav.journal" },
 ];
 
 export function Sidebar() {
+  const { t } = useTranslation();
+
   return (
     <aside className="hidden w-60 shrink-0 border-r border-line bg-slate-950/90 p-4 md:block">
       <div className="mb-8">
         <div className="text-sm font-semibold uppercase tracking-wide text-cyan-300">
-          Smart Trading AI
+          {t("app.name")}
         </div>
-        <div className="mt-1 text-xs text-slate-500">Analysis dashboard only</div>
+        <div className="mt-1 text-xs text-slate-500">{t("app.subtitle")}</div>
       </div>
       <nav className="space-y-1">
         {items.map((item) => (
@@ -31,7 +34,7 @@ export function Sidebar() {
               ].join(" ")
             }
           >
-            {item.label}
+            {t(item.label)}
           </NavLink>
         ))}
       </nav>

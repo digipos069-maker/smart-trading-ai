@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { ChartToolbar } from "../components/chart/ChartToolbar";
 import { ICTSignalPanel } from "../components/panels/ICTSignalPanel";
@@ -6,6 +7,7 @@ import { useICTAnalysis } from "../hooks/useICTAnalysis";
 import type { SymbolCode, Timeframe } from "../types/market";
 
 export function ICTAnalysisPage() {
+  const { t } = useTranslation();
   const [symbol, setSymbol] = useState<SymbolCode>("XAUUSD");
   const [timeframe, setTimeframe] = useState<Timeframe>("M5");
   const ict = useICTAnalysis(symbol, timeframe);
@@ -20,7 +22,9 @@ export function ICTAnalysisPage() {
       />
       <ICTSignalPanel analysis={ict.data} loading={ict.isLoading} />
       <section className="rounded-md border border-line bg-slate-900 p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-100">Detected Trade Models</h2>
+        <h2 className="mb-3 text-sm font-semibold text-slate-100">
+          {t("panels.detectedTradeModels")}
+        </h2>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {ict.data?.trade_models.map((model) => (
             <div key={`${model.name}-${model.direction}`} className="rounded-md bg-slate-950 p-3">

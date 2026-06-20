@@ -1,9 +1,12 @@
 import type { BacktestResponse } from "../../types/backtest";
 import { MetricCard } from "../ui/MetricCard";
 import { EmptyState } from "../ui/State";
+import { useTranslation } from "react-i18next";
 
 export function BacktestResultPanel({ result }: { result?: BacktestResponse }) {
-  if (!result) return <EmptyState message="Run a backtest to view metrics." />;
+  const { t } = useTranslation();
+
+  if (!result) return <EmptyState message={t("backtest.empty")} />;
   const metrics = result.metrics;
   return (
     <section className="space-y-4">
@@ -37,7 +40,14 @@ export function BacktestResultPanel({ result }: { result?: BacktestResponse }) {
             {result.trades.map((trade) => (
               <tr key={`${trade.entry_time}-${trade.exit_time}`} className="border-t border-line">
                 <td className="px-3 py-2 text-slate-300">{new Date(trade.entry_time).toLocaleString()}</td>
-                <td className="px-3 py-2 capitalize">{trade.direction}</td>
+                <td
+                  className={[
+                    "px-3 py-2 capitalize",
+                    trade.direction === "bearish" ? "text-red-300" : "text-emerald-300",
+                  ].join(" ")}
+                >
+                  {trade.direction}
+                </td>
                 <td className="px-3 py-2">{trade.session}</td>
                 <td className="px-3 py-2 capitalize">{trade.result}</td>
                 <td className="px-3 py-2">{trade.r_multiple}</td>
