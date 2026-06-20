@@ -22,7 +22,7 @@ from app.services.market_data_service import validate_symbol, validate_timeframe
 
 MIN_ROLLING_WINDOW = 50
 ROLLING_WINDOW = 120
-MAX_HOLDING_CANDLES = {"M1": 120, "M5": 96, "M15": 64, "H1": 48, "H4": 30, "D1": 20}
+MAX_HOLDING_CANDLES = {"M1": 120, "M5": 96, "M15": 64, "M30": 56, "H1": 48, "H4": 30, "D1": 20}
 
 
 @dataclass(frozen=True)

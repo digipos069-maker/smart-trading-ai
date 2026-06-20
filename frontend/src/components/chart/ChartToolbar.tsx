@@ -1,7 +1,7 @@
 import type { SymbolCode, Timeframe } from "../../types/market";
 
 export const SYMBOLS: SymbolCode[] = ["XAUUSD", "EURUSD", "GBPUSD", "BTCUSD", "NQ"];
-export const TIMEFRAMES: Timeframe[] = ["M1", "M5", "M15", "H1", "H4", "D1"];
+export const TIMEFRAMES: Timeframe[] = ["M1", "M5", "M15", "M30", "H1", "H4", "D1"];
 
 export function ChartToolbar({
   symbol,

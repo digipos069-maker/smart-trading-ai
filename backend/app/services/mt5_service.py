@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.schemas.market import CandleResponse
 
 SUPPORTED_SYMBOLS = {"XAUUSD", "EURUSD", "GBPUSD", "BTCUSD", "NQ"}
-SUPPORTED_TIMEFRAMES = {"M1", "M5", "M15", "H1", "H4", "D1"}
+SUPPORTED_TIMEFRAMES = {"M1", "M5", "M15", "M30", "H1", "H4", "D1"}
 
 
 class MT5ConnectionError(RuntimeError):
@@ -29,6 +29,7 @@ def _timeframe_map() -> dict[str, Any]:
         "M1": mt5.TIMEFRAME_M1,
         "M5": mt5.TIMEFRAME_M5,
         "M15": mt5.TIMEFRAME_M15,
+        "M30": mt5.TIMEFRAME_M30,
         "H1": mt5.TIMEFRAME_H1,
         "H4": mt5.TIMEFRAME_H4,
         "D1": mt5.TIMEFRAME_D1,
