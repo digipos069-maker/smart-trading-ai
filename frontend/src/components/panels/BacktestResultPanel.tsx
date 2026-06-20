@@ -23,9 +23,9 @@ export function BacktestResultPanel({ result }: { result?: BacktestResponse }) {
       <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
         {result.warning}
       </div>
-      <div className="overflow-auto rounded-md border border-line">
+      <div className="max-h-[520px] overflow-auto rounded-md border border-line">
         <table className="min-w-full text-left text-sm">
-          <thead className="bg-slate-900 text-xs text-slate-500">
+          <thead className="sticky top-0 z-10 bg-slate-900 text-xs text-slate-500">
             <tr>
               <th className="px-3 py-2">Entry</th>
               <th className="px-3 py-2">Dir</th>
