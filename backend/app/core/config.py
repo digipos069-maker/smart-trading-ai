@@ -40,6 +40,14 @@ class Settings(BaseSettings):
     SIGNAL_ALERT_MIN_SCORE: int = 75
     SIGNAL_ALERT_CANDLE_LIMIT: int = 500
     SIGNAL_ALERT_SYNC_PROVIDER: str | None = None
+    TRADING_ENABLED: bool = False
+    TRADING_MODE: str = "demo"
+    AUTO_EXECUTE_SIGNALS: bool = False
+    EXECUTION_MIN_SCORE: int = 75
+    EXECUTION_RISK_PERCENT: float = 1.0
+    EXECUTION_MAX_RISK_PERCENT: float = 2.0
+    EXECUTION_DEVIATION_POINTS: int = 20
+    EXECUTION_MAGIC_NUMBER: int = 20260620
 
 
 settings = Settings()

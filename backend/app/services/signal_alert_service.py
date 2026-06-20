@@ -7,6 +7,7 @@ import requests
 from app.core.config import settings
 from app.database.session import SessionLocal
 from app.services.candle_service import get_saved_candles
+from app.services.execution_service import TradeValidationError, TradingDisabledError, execute_ict_signal
 from app.services.ict_engine import analyze_ict_setup
 from app.services.telegram_service import send_telegram_message
 
@@ -62,8 +63,27 @@ def run_signal_alert_scan() -> None:
                 if alert_key in _last_alert_keys:
                     continue
 
-                if send_telegram_message(_format_signal_message(analysis, signal_time)):
-                    _last_alert_keys.add(alert_key)
+                send_telegram_message(_format_signal_message(analysis, signal_time))
+                _last_alert_keys.add(alert_key)
+
+                if settings.AUTO_EXECUTE_SIGNALS:
+                    try:
+                        execution = execute_ict_signal(db, analysis)
+                        send_telegram_message(
+                            "Smart Trading AI Execution\n"
+                            f"Symbol: {execution.symbol}\n"
+                            f"Direction: {execution.direction.upper()}\n"
+                            f"Volume: {execution.volume}\n"
+                            f"Status: {execution.status}\n"
+                            f"Order: {execution.mt5_order}\n"
+                            f"Message: {execution.message}"
+                        )
+                    except (TradeValidationError, TradingDisabledError) as exc:
+                        logger.warning("Automatic signal execution skipped: %s", exc)
+                        send_telegram_message(f"Smart Trading AI execution skipped: {exc}")
+                    except Exception as exc:
+                        logger.exception("Automatic signal execution failed.")
+                        send_telegram_message(f"Smart Trading AI execution failed: {exc}")
 
 
 def _sync_market_data(symbols: list[str], timeframes: list[str]) -> None:

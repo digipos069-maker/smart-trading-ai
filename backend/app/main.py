@@ -5,7 +5,7 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import ai, backtest, ict, market, news
+from app.api import ai, backtest, execution, ict, market, news
 from app.core.config import settings
 from app.database.init_db import init_db
 from app.services.signal_alert_service import run_signal_alert_loop
@@ -40,6 +40,7 @@ app.include_router(ict.router, prefix="/ict", tags=["ict"])
 app.include_router(news.router, prefix="/news", tags=["news"])
 app.include_router(ai.router, prefix="/ai", tags=["ai"])
 app.include_router(backtest.router, prefix="/backtest", tags=["backtest"])
+app.include_router(execution.router, prefix="/execution", tags=["execution"])
 
 
 @app.get("/health")
