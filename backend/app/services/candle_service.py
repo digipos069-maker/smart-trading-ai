@@ -1,3 +1,5 @@
+from datetime import date, datetime, time, timezone
+
 from sqlalchemy import Select, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
@@ -66,3 +68,28 @@ def get_saved_candles(
     candles = list(db.scalars(statement).all())
     candles.reverse()
     return candles
+
+
+def get_saved_candles_by_date_range(
+    db: Session,
+    symbol: str,
+    timeframe: str,
+    start_date: date,
+    end_date: date,
+) -> list[Candle]:
+    normalized_symbol = validate_symbol(symbol)
+    normalized_timeframe = validate_timeframe(timeframe)
+    start_at = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
+    end_at = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
+
+    statement: Select[tuple[Candle]] = (
+        select(Candle)
+        .where(
+            Candle.symbol == normalized_symbol,
+            Candle.timeframe == normalized_timeframe,
+            Candle.time >= start_at,
+            Candle.time <= end_at,
+        )
+        .order_by(Candle.time.asc())
+    )
+    return list(db.scalars(statement).all())
