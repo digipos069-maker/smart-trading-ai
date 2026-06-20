@@ -66,24 +66,27 @@ def run_backtest(db: Session, request: BacktestRequest) -> BacktestResponse:
     )
     trades: list[BacktestTrade] = []
     next_available_index = 0
+    balance = request.initial_balance
 
     for candidate in candidates:
         if candidate.signal_index < next_available_index:
             continue
 
         candles_after_signal = candles[candidate.signal_index + 1 :]
-        trade = simulate_trade(candles_after_signal, candidate)
+        risk_amount = balance * (request.risk_per_trade / 100)
+        trade = simulate_trade(candles_after_signal, candidate, risk_amount, balance)
         if trade is None:
             continue
         if request.session_filter and trade.session != request.session_filter:
             continue
 
         trades.append(trade)
+        balance = trade.balance_after
         next_available_index = candidate.signal_index + 1 + _trade_duration(
             candles_after_signal, trade.exit_time
         )
 
-    metrics = calculate_metrics(trades)
+    metrics = calculate_metrics(trades, request.initial_balance)
     saved = save_backtest_result(db, request, symbol, timeframe, trades, metrics)
     return BacktestResponse(
         id=saved.id,
@@ -162,6 +165,8 @@ def generate_ict_trade_candidates(
 def simulate_trade(
     candles_after_signal: list[object],
     candidate: TradeCandidate,
+    risk_amount: float = 0,
+    balance_before: float = 0,
 ) -> BacktestTrade | None:
     """Simulate one trade after a signal; same-candle SL/TP resolves to SL first."""
     max_holding = MAX_HOLDING_CANDLES.get(candidate.timeframe, 96)
@@ -215,6 +220,8 @@ def simulate_trade(
     )
     if result == "breakeven" and abs(r_multiple) >= 0.01:
         result = "win" if r_multiple > 0 else "loss"
+    profit_loss = risk_amount * r_multiple
+    balance_after = balance_before + profit_loss
 
     return BacktestTrade(
         entry_time=entry_time,
@@ -229,6 +236,9 @@ def simulate_trade(
         risk=round(risk, 5),
         reward=round(reward, 5),
         rr=round(reward / risk, 2),
+        risk_amount=round(risk_amount, 2),
+        profit_loss=round(profit_loss, 2),
+        balance_after=round(balance_after, 2),
         result=result,
         r_multiple=round(r_multiple, 2),
         setup_score=candidate.setup_score,
@@ -259,7 +269,10 @@ def calculate_trade_r_multiple(
     return profit_or_loss / risk
 
 
-def calculate_metrics(trades: list[BacktestTrade]) -> BacktestMetrics:
+def calculate_metrics(
+    trades: list[BacktestTrade],
+    initial_balance: float = 0,
+) -> BacktestMetrics:
     total = len(trades)
     wins = sum(1 for trade in trades if trade.result == "win")
     losses = sum(1 for trade in trades if trade.result == "loss")
@@ -268,9 +281,21 @@ def calculate_metrics(trades: list[BacktestTrade]) -> BacktestMetrics:
     rr_values = [trade.rr for trade in trades]
     gross_profit = sum(value for value in r_values if value > 0)
     gross_loss = abs(sum(value for value in r_values if value < 0))
+    gross_profit_amount = sum(trade.profit_loss for trade in trades if trade.profit_loss > 0)
+    gross_loss_amount = abs(sum(trade.profit_loss for trade in trades if trade.profit_loss < 0))
+    net_profit_loss = sum(trade.profit_loss for trade in trades)
+    ending_balance = initial_balance + net_profit_loss
     net_r = sum(r_values)
 
     return BacktestMetrics(
+        initial_balance=round(initial_balance, 2),
+        ending_balance=round(ending_balance, 2),
+        net_profit_loss=round(net_profit_loss, 2),
+        return_percent=round((net_profit_loss / initial_balance) * 100, 2)
+        if initial_balance
+        else 0,
+        gross_profit_amount=round(gross_profit_amount, 2),
+        gross_loss_amount=round(gross_loss_amount, 2),
         total_trades=total,
         winning_trades=wins,
         losing_trades=losses,

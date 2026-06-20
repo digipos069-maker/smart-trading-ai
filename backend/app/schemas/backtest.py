@@ -42,6 +42,9 @@ class BacktestTrade(BaseModel):
     risk: float
     reward: float
     rr: float
+    risk_amount: float
+    profit_loss: float
+    balance_after: float
     result: Literal["win", "loss", "breakeven"]
     r_multiple: float
     setup_score: int
@@ -50,6 +53,12 @@ class BacktestTrade(BaseModel):
 
 
 class BacktestMetrics(BaseModel):
+    initial_balance: float
+    ending_balance: float
+    net_profit_loss: float
+    return_percent: float
+    gross_profit_amount: float
+    gross_loss_amount: float
     total_trades: int
     winning_trades: int
     losing_trades: int
