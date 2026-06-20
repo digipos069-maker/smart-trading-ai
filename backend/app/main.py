@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 import asyncio
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import ai, backtest, ict, market, news
 from app.core.config import settings
@@ -25,6 +26,14 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(market.router, prefix="/market", tags=["market"])
 app.include_router(ict.router, prefix="/ict", tags=["ict"])

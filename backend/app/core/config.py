@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api"
     ENVIRONMENT: str = "development"
     AUTO_CREATE_TABLES: bool = True
+    CORS_ORIGINS: str = "http://127.0.0.1:5173,http://localhost:5173"
     MARKET_DATA_PROVIDER: str = "mt5"
     MARKET_DATA_TIMEOUT_SECONDS: float = 15.0
     BINANCE_BASE_URL: str = "https://api.binance.com"
