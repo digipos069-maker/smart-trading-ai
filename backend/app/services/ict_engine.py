@@ -13,6 +13,7 @@ from app.schemas.ict import (
     StructureEvent,
     SwingPoint,
 )
+from app.services.ict_trade_models import detect_trade_models
 
 
 def _confidence(close: float, broken_level: float) -> float:
@@ -399,6 +400,22 @@ def analyze_ict_setup(
         ote_zones,
         session_ranges,
     )
+    trade_models = detect_trade_models(
+        candles,
+        bias,
+        swing_points,
+        bos_events,
+        mss_events,
+        liquidity_sweeps,
+        fvgs,
+        ifvgs,
+        order_blocks,
+        ote_zones,
+        session_ranges,
+        entry_zone,
+        stop_loss,
+        take_profit,
+    )
 
     setup_type = _build_setup_type(liquidity_sweeps, mss_events, bos_events, fvgs, ifvgs)
 
@@ -417,6 +434,7 @@ def analyze_ict_setup(
         order_blocks=order_blocks,
         ote_zones=ote_zones,
         session_ranges=session_ranges,
+        trade_models=trade_models,
         entry_zone=entry_zone,
         stop_loss=stop_loss,
         take_profit=take_profit,

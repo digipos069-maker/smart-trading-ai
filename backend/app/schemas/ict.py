@@ -75,6 +75,16 @@ class SessionRange(BaseModel):
     midpoint: float
 
 
+class TradeModel(BaseModel):
+    name: str
+    direction: str
+    confidence: float = Field(ge=0, le=100)
+    reason: str
+    entry_zone: dict[str, float] | None = None
+    invalid_level: float | None = None
+    target_level: float | None = None
+
+
 class ICTAnalysisResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -92,6 +102,7 @@ class ICTAnalysisResponse(BaseModel):
     order_blocks: list[OrderBlock]
     ote_zones: list[OTEZone]
     session_ranges: list[SessionRange]
+    trade_models: list[TradeModel] = []
     entry_zone: dict[str, float] | None = None
     stop_loss: float | None = None
     take_profit: float | None = None
