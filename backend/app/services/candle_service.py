@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.models.candle import Candle
 from app.schemas.market import CandleResponse
-from app.services.mt5_service import validate_symbol, validate_timeframe
+from app.services.market_data_service import validate_symbol, validate_timeframe
 
 
 def save_candles(

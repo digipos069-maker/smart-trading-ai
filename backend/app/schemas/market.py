@@ -22,6 +22,7 @@ class CandleFetchRequest(BaseModel):
 
 
 class MarketDataResponse(BaseModel):
+    provider: str = "mt5"
     symbol: str
     timeframe: str
     count: int

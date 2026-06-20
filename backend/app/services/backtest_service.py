@@ -18,7 +18,7 @@ from app.schemas.backtest import (
 )
 from app.services.candle_service import get_saved_candles_by_date_range
 from app.services.ict_engine import analyze_ict_setup
-from app.services.mt5_service import validate_symbol, validate_timeframe
+from app.services.market_data_service import validate_symbol, validate_timeframe
 
 MIN_ROLLING_WINDOW = 50
 ROLLING_WINDOW = 120

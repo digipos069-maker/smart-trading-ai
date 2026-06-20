@@ -9,13 +9,16 @@ from app.core.config import settings
 from app.database.session import get_db
 from app.schemas.market import MarketDataResponse
 from app.services.candle_service import save_candles
-from app.services.mt5_service import (
-    MT5ConnectionError,
-    MT5DataError,
+from app.services.market_data_service import (
+    MarketDataProviderError,
     get_candles,
     get_market_status,
     validate_symbol,
     validate_timeframe,
+)
+from app.services.mt5_service import (
+    MT5ConnectionError,
+    MT5DataError,
 )
 
 router = APIRouter()
@@ -23,8 +26,14 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/status")
-def market_status() -> dict[str, str]:
-    return get_market_status()
+def market_status(provider: str | None = None) -> dict[str, str]:
+    try:
+        return get_market_status(provider)
+    except MarketDataProviderError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get("/candles", response_model=MarketDataResponse)
@@ -33,13 +42,14 @@ def market_candles(
     symbol: Annotated[str, Query(description="Trading symbol")] = "XAUUSD",
     timeframe: Annotated[str, Query(description="Timeframe")] = "M15",
     limit: Annotated[int, Query(ge=1, le=5000)] = 500,
+    provider: str | None = None,
 ) -> MarketDataResponse:
     try:
-        normalized_symbol = validate_symbol(symbol)
-        normalized_timeframe = validate_timeframe(timeframe)
-        candles = get_candles(normalized_symbol, normalized_timeframe, limit)
+        normalized_symbol = validate_symbol(symbol, provider)
+        normalized_timeframe = validate_timeframe(timeframe, provider)
+        candles = get_candles(normalized_symbol, normalized_timeframe, limit, provider)
         saved_candles = save_candles(db, candles, normalized_symbol, normalized_timeframe)
-    except ValueError as exc:
+    except (ValueError, MarketDataProviderError) as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
@@ -61,6 +71,7 @@ def market_candles(
         ) from exc
 
     return MarketDataResponse(
+        provider=provider or settings.MARKET_DATA_PROVIDER,
         symbol=normalized_symbol,
         timeframe=normalized_timeframe,
         count=len(saved_candles),
