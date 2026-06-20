@@ -1,18 +1,27 @@
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
+import asyncio
 
 from fastapi import FastAPI
 
 from app.api import ai, backtest, ict, market, news
 from app.core.config import settings
 from app.database.init_db import init_db
+from app.services.signal_alert_service import run_signal_alert_loop
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     if settings.AUTO_CREATE_TABLES:
         init_db()
+    stop_event = asyncio.Event()
+    alert_task = None
+    if settings.SIGNAL_ALERTS_ENABLED:
+        alert_task = asyncio.create_task(run_signal_alert_loop(stop_event))
     yield
+    stop_event.set()
+    if alert_task:
+        await alert_task
 
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)

@@ -29,6 +29,16 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str | None = None
     OPENAI_MODEL: str = "gpt-4.1-mini"
     OPENAI_TIMEOUT_SECONDS: float = 20.0
+    MARKET_DATA_SERVICE_URL: str | None = "http://127.0.0.1:8010"
+    TELEGRAM_BOT_TOKEN: str | None = None
+    TELEGRAM_CHAT_ID: str | None = None
+    SIGNAL_ALERTS_ENABLED: bool = False
+    SIGNAL_ALERT_SYMBOLS: str = "XAUUSD"
+    SIGNAL_ALERT_TIMEFRAMES: str = "M5"
+    SIGNAL_ALERT_INTERVAL_SECONDS: int = 300
+    SIGNAL_ALERT_MIN_SCORE: int = 75
+    SIGNAL_ALERT_CANDLE_LIMIT: int = 500
+    SIGNAL_ALERT_SYNC_PROVIDER: str | None = None
 
 
 settings = Settings()
