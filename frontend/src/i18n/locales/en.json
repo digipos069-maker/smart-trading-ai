@@ -74,6 +74,10 @@
     "dark": "Dark",
     "darkDescription": "Current trading dashboard style.",
     "light": "White",
-    "lightDescription": "Bright skin for daytime review."
+    "lightDescription": "Bright skin for daytime review.",
+    "chartConfidence": "Chart label confidence",
+    "chartConfidenceHint": "Only show market analysis labels when ICT score is above this value.",
+    "showLabelsAbove": "Show labels above score",
+    "currentThreshold": "Current threshold: > {{value}}"
   }
 }

@@ -16,9 +16,8 @@ import { useTranslation } from "react-i18next";
 
 import type { ICTAnalysis } from "../../types/ict";
 import type { Candle } from "../../types/market";
+import { getChartLabelConfidence } from "../../theme";
 import { EmptyState, LoadingBlock } from "../ui/State";
-
-const MIN_LABEL_CONFIDENCE = 70;
 
 export function TradingChart({
   candles,
@@ -177,7 +176,7 @@ function buildMarkers(analysis?: ICTAnalysis): SeriesMarker<Time>[] {
 }
 
 function hasHighConfidenceAnalysis(analysis?: ICTAnalysis): analysis is ICTAnalysis {
-  return Boolean(analysis && analysis.score > MIN_LABEL_CONFIDENCE);
+  return Boolean(analysis && analysis.score > getChartLabelConfidence());
 }
 
 function formatLocalDateTime(time: Time): string {

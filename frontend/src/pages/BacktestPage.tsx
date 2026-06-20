@@ -2,10 +2,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { FormEvent, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { SYMBOLS, TIMEFRAMES } from "../components/chart/ChartToolbar";
 import { BacktestResultPanel } from "../components/panels/BacktestResultPanel";
 import { ErrorState, LoadingBlock } from "../components/ui/State";
 import { fetchBacktestResults, runBacktest } from "../services/backtestApi";
 import type { BacktestRequest, BacktestResponse } from "../types/backtest";
+import type { SymbolCode, Timeframe } from "../types/market";
 
 const defaultModels = [
   "turtle_soup",
@@ -55,8 +57,18 @@ export function BacktestPage() {
     <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
       <form onSubmit={submit} className="space-y-3 rounded-md border border-line bg-slate-900 p-4">
         <h2 className="text-sm font-semibold text-slate-100">{t("panels.runBacktest")}</h2>
-        <Input label={t("backtest.symbol")} value={form.symbol} onChange={(value) => setForm({ ...form, symbol: value })} />
-        <Input label={t("backtest.timeframe")} value={form.timeframe} onChange={(value) => setForm({ ...form, timeframe: value })} />
+        <Select
+          label={t("backtest.symbol")}
+          value={form.symbol as SymbolCode}
+          options={SYMBOLS}
+          onChange={(value) => setForm({ ...form, symbol: value })}
+        />
+        <Select
+          label={t("backtest.timeframe")}
+          value={form.timeframe as Timeframe}
+          options={TIMEFRAMES}
+          onChange={(value) => setForm({ ...form, timeframe: value })}
+        />
         <Input label={t("backtest.startDate")} type="date" value={form.start_date} onChange={(value) => setForm({ ...form, start_date: value })} />
         <Input label={t("backtest.endDate")} type="date" value={form.end_date} onChange={(value) => setForm({ ...form, end_date: value })} />
         <Input label={t("backtest.minScore")} type="number" value={String(form.min_score)} onChange={(value) => setForm({ ...form, min_score: Number(value) })} />
@@ -122,6 +134,35 @@ function Input({
         onChange={(event) => onChange(event.target.value)}
         className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
       />
+    </label>
+  );
+}
+
+function Select<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: readonly T[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <label className="block text-xs text-slate-500">
+      {label}
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value as T)}
+        className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }
