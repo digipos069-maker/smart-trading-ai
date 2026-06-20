@@ -20,7 +20,7 @@ app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 app.include_router(market.router, prefix="/market", tags=["market"])
 app.include_router(ict.router, prefix="/ict", tags=["ict"])
 app.include_router(news.router, prefix="/news", tags=["news"])
-app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
+app.include_router(ai.router, prefix="/ai", tags=["ai"])
 app.include_router(backtest.router, prefix="/api/backtest", tags=["backtest"])
 
 

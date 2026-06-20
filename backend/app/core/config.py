@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     MT5_TERMINAL_PATH: str | None = None
     MT5_FORCE_LOGIN: bool = False
     MT5_TIMEOUT_MS: int = 60_000
+    OPENAI_API_KEY: str | None = None
+    OPENAI_MODEL: str = "gpt-4.1-mini"
+    OPENAI_TIMEOUT_SECONDS: float = 20.0
 
 
 settings = Settings()
